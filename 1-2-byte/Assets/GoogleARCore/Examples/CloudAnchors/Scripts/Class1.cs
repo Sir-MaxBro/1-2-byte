@@ -20,7 +20,7 @@ namespace Assets.GoogleARCore.Examples.CloudAnchors.Scripts
     {
         public string name { get; set; }
         public Fields fields { get; set; }
-        public DateTime createTime { get; set; }
+        public string createTime { get; set; }
         public DateTime updateTime { get; set; }
     }
     //[Serializable]

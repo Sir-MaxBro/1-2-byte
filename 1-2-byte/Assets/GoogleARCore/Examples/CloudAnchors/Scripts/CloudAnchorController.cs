@@ -255,7 +255,7 @@ namespace GoogleARCore.Examples.CloudAnchors
 
             var result = JsonConvert.DeserializeObject<RootObject>(responseData);
 
-            result.documents.Sort((x, y) => DateTime.Compare(x.createTime, y.createTime));
+            result.documents.Sort((x, y) => string.Compare(x.createTime, y.createTime));
 
             m_cloudAnchorId = result.documents.Last().fields.id.stringValue;
 

@@ -59,40 +59,18 @@ namespace GoogleARCore.Examples.CloudAnchors
         /// An Andy Android model to visually represent anchors in the scene; this uses ARCore
         /// lighting estimation shaders.
         /// </summary>
-        public GameObject ARCoreAndyAndroidPrefab;
-
-        [Header("ARKit")]
-
-        /// <summary>
-        /// The root for ARKit-specific GameObjects in the scene.
-        /// </summary>
-        public GameObject ARKitRoot;
-
-        /// <summary>
-        /// The first-person camera used to render the AR background texture for ARKit.
-        /// </summary>
-        public Camera ARKitFirstPersonCamera;
-
-        /// <summary>
-        /// An Andy Android model to visually represent anchors in the scene; this uses
-        /// standard diffuse shaders.
-        /// </summary>
-        public GameObject ARKitAndyAndroidPrefab;
+        public List<GameObject> availableObjects = new List<GameObject>();
 
         /// <summary>
         /// The loopback ip address.
         /// </summary>
-        private const string k_LoopbackIpAddress = "127.0.0.1";
+        [SerializeField]
+        private string k_LoopbackIpAddress = "127.0.0.1";
 
         /// <summary>
         /// The rotation in degrees need to apply to model when the Andy model is placed.
         /// </summary>
         private const float k_ModelRotation = 180.0f;
-
-        /// <summary>
-        /// A helper object to ARKit functionality.
-        /// </summary>
-        private ARKitHelper m_ARKit = new ARKitHelper();
 
         /// <summary>
         /// True if the app is in the process of quitting due to an ARCore connection error, otherwise false.
@@ -117,7 +95,7 @@ namespace GoogleARCore.Examples.CloudAnchors
         /// <summary>
         /// Current local room to attach next Anchor to.
         /// </summary>
-        private int m_CurrentRoom;
+        private const int m_CurrentRoom = 1;
 
         /// <summary>
         /// Enumerates modes the example application can be in.
@@ -137,12 +115,10 @@ namespace GoogleARCore.Examples.CloudAnchors
             if (Application.platform != RuntimePlatform.IPhonePlayer)
             {
                 ARCoreRoot.SetActive(true);
-                ARKitRoot.SetActive(false);
             }
             else
             {
                 ARCoreRoot.SetActive(false);
-                ARKitRoot.SetActive(true);
             }
 
             _ResetStatus();
@@ -179,14 +155,6 @@ namespace GoogleARCore.Examples.CloudAnchors
                     m_LastPlacedAnchor = hit.Trackable.CreateAnchor(hit.Pose);
                 }
             }
-            else
-            {
-                Pose hitPose;
-                if (m_ARKit.RaycastPlane(ARKitFirstPersonCamera, touch.position.x, touch.position.y, out hitPose))
-                {
-                    m_LastPlacedAnchor = m_ARKit.CreateAnchor(hitPose);
-                }
-            }
 
             if (m_LastPlacedAnchor != null)
             {
@@ -219,7 +187,6 @@ namespace GoogleARCore.Examples.CloudAnchors
             }
 
             m_CurrentMode = ApplicationMode.Hosting;
-            m_CurrentRoom = Random.Range(1, 9999);
             UIController.SetRoomTextValue(m_CurrentRoom);
             UIController.ShowHostingModeBegin();
         }
@@ -246,20 +213,12 @@ namespace GoogleARCore.Examples.CloudAnchors
         /// </summary>
         public void OnResolveRoomClick()
         {
-            var roomToResolve = UIController.GetRoomInputValue();
-            if (roomToResolve == 0)
-            {
-                UIController.ShowResolvingModeBegin("Anchor resolve failed due to invalid room code.");
-                return;
-            }
-
-            UIController.SetRoomTextValue(roomToResolve);
             string ipAddress =
                 UIController.GetResolveOnDeviceValue() ? k_LoopbackIpAddress : UIController.GetIpAddressInputValue();
 
             UIController.ShowResolvingModeAttemptingResolve();
             RoomSharingClient roomSharingClient = new RoomSharingClient();
-            roomSharingClient.GetAnchorIdFromRoom(roomToResolve, ipAddress, (bool found, string cloudAnchorId) =>
+            roomSharingClient.GetAnchorIdFromRoom(m_CurrentRoom, ipAddress, (bool found, string cloudAnchorId) =>
             {
                 if (!found)
                 {
@@ -349,8 +308,9 @@ namespace GoogleARCore.Examples.CloudAnchors
         /// <returns>The platform-specific Andy the android prefab.</returns>
         private GameObject _GetAndyPrefab()
         {
-            return Application.platform != RuntimePlatform.IPhonePlayer ?
-                ARCoreAndyAndroidPrefab : ARKitAndyAndroidPrefab;
+            //TODO
+            //return CactusPrefab;
+            return new GameObject();
         }
 
         /// <summary>

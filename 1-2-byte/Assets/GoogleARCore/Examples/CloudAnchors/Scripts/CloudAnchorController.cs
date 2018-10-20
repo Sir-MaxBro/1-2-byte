@@ -20,16 +20,24 @@
 
 namespace GoogleARCore.Examples.CloudAnchors
 {
+    using System.Collections;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Net;
+    using System.Text;
+    using Assets.GoogleARCore.Examples.CloudAnchors.Scripts;
     using GoogleARCore;
     using GoogleARCore.CrossPlatform;
     using GoogleARCore.Examples.Common;
     using UnityEngine;
+    using UnityEngine.Networking;
     using UnityEngine.UI;
+    using Newtonsoft.Json;
 
 #if UNITY_EDITOR
     // Set up touch input propagation while using Instant Preview in the editor.
     using Input = InstantPreviewInput;
+    using System;
 #endif
 
     /// <summary>
@@ -107,6 +115,9 @@ namespace GoogleARCore.Examples.CloudAnchors
             Resolving,
         }
 
+
+        private string m_cloudAnchorId = string.Empty;
+
         /// <summary>
         /// The Unity Start() method.
         /// </summary>
@@ -122,6 +133,8 @@ namespace GoogleARCore.Examples.CloudAnchors
             }
 
             _ResetStatus();
+
+            //StartCoroutine(DownloadAnchorId());
         }
 
         /// <summary>
@@ -213,23 +226,40 @@ namespace GoogleARCore.Examples.CloudAnchors
         /// </summary>
         public void OnResolveRoomClick()
         {
-            string ipAddress =
-                UIController.GetResolveOnDeviceValue() ? k_LoopbackIpAddress : UIController.GetIpAddressInputValue();
+            StartCoroutine(DownloadAnchorId());
+        }
 
-            UIController.ShowResolvingModeAttemptingResolve();
-            RoomSharingClient roomSharingClient = new RoomSharingClient();
-            roomSharingClient.GetAnchorIdFromRoom(m_CurrentRoom, ipAddress, (bool found, string cloudAnchorId) =>
-            {
-                if (!found)
-                {
-                    UIController.ShowResolvingModeBegin("Anchor resolve failed due to invalid room code, " +
-                                                        "ip address or network error.");
-                }
-                else
-                {
-                    _ResolveAnchorFromId(cloudAnchorId);
-                }
-            });
+        IEnumerator Upload(string id)
+        {
+            var request = UnityWebRequest.Post("https://firestore.googleapis.com/v1beta1/projects/hackaton-220006/databases/(default)/documents/ids",
+                UnityWebRequest.kHttpVerbPOST);
+            string data = "{'fields': {'id': {'stringValue': '" + id +"'}}}";
+            request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(data));
+            request.uploadHandler.contentType = "application/json";
+
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            yield return request.SendWebRequest();
+
+            Debug.Log("response code =======>" + request.responseCode);
+        }
+
+        IEnumerator DownloadAnchorId()
+        {
+            var request = UnityWebRequest.Get("https://firestore.googleapis.com/v1beta1/projects/hackaton-220006/databases/(default)/documents/ids");
+
+            yield return request.SendWebRequest();
+
+            var responseData = request.downloadHandler.text;
+            Debug.Log("data -----> " + responseData);
+
+            var result = JsonConvert.DeserializeObject<RootObject>(responseData);
+
+            result.documents.Sort((x, y) => DateTime.Compare(x.createTime, y.createTime));
+
+            m_cloudAnchorId = result.documents.Last().fields.id.stringValue;
+
+            _ResolveAnchorFromId(m_cloudAnchorId);
         }
 
         /// <summary>
@@ -244,6 +274,7 @@ namespace GoogleARCore.Examples.CloudAnchors
 #else
             var anchor = (UnityEngine.XR.iOS.UnityARUserAnchorComponent)m_LastPlacedAnchor;
 #endif
+
             UIController.ShowHostingModeAttemptingHost();
             XPSession.CreateCloudAnchor(anchor).ThenAction(result =>
             {
@@ -254,7 +285,8 @@ namespace GoogleARCore.Examples.CloudAnchors
                     return;
                 }
 
-                RoomSharingServer.SaveCloudAnchorToRoom(m_CurrentRoom, result.Anchor);
+                //RoomSharingServer.SaveCloudAnchorToRoom(m_CurrentRoom, result.Anchor);
+                StartCoroutine(Upload(result.Anchor.CloudId));
                 UIController.ShowHostingModeBegin("Cloud anchor was created and saved.");
             });
 #endif
@@ -310,7 +342,7 @@ namespace GoogleARCore.Examples.CloudAnchors
         {
             //TODO
             //return CactusPrefab;
-            return new GameObject();
+            return availableObjects.First();
         }
 
         /// <summary>

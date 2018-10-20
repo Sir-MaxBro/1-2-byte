@@ -92,7 +92,7 @@ namespace GoogleARCore.Examples.CloudAnchors
             ResolveAnchorModeButton.GetComponentInChildren<Text>().text = "Resolve";
             ResolveAnchorModeButton.interactable = true;
             SnackbarText.text = "Please select Host or Resolve to continue";
-            InputRoot.SetActive(false);
+            //InputRoot.SetActive(false);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace GoogleARCore.Examples.CloudAnchors
                 SnackbarText.text = snackbarText;
             }
 
-            InputRoot.SetActive(false);
+           // InputRoot.SetActive(false);
         }
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace GoogleARCore.Examples.CloudAnchors
             ResolveAnchorModeButton.GetComponentInChildren<Text>().text = "Resolve";
             ResolveAnchorModeButton.interactable = false;
             SnackbarText.text = "Attempting to host anchor...";
-            InputRoot.SetActive(false);
+           // InputRoot.SetActive(false);
         }
 
         /// <summary>
@@ -152,7 +152,7 @@ namespace GoogleARCore.Examples.CloudAnchors
                 SnackbarText.text = snackbarText;
             }
 
-            InputRoot.SetActive(true);
+            //InputRoot.SetActive(true);
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace GoogleARCore.Examples.CloudAnchors
             ResolveAnchorModeButton.GetComponentInChildren<Text>().text = "Cancel";
             ResolveAnchorModeButton.interactable = false;
             SnackbarText.text = "Attempting to resolve anchor.";
-            InputRoot.SetActive(false);
+            //InputRoot.SetActive(false);
         }
 
         /// <summary>
@@ -178,7 +178,7 @@ namespace GoogleARCore.Examples.CloudAnchors
             ResolveAnchorModeButton.GetComponentInChildren<Text>().text = "Cancel";
             ResolveAnchorModeButton.interactable = true;
             SnackbarText.text = "The anchor was successfully resolved.";
-            InputRoot.SetActive(false);
+            //InputRoot.SetActive(false);
         }
 
         /// <summary>
